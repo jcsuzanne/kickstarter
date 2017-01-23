@@ -431,7 +431,8 @@
                     // Continue as normal for cmd clicks etc
                     if ( event.which == 2 || event.metaKey ) { return true; }
 
-                    History.pushState(null, ns.ajax.loading, this.href);
+                    if(canAjax) History.pushState(null, ns.ajax.loading, this.href);
+
 
 
                     return false;
@@ -459,8 +460,16 @@
                     url += joint + ns.ajax.query;
                 }
 
+                if(typeof State.data.noEvent != "undefined" && State.data.noEvent == true)
+                {
+                    return false;
+                }
+
                 // BEFORE
-                _k.publish('statechange::before');
+
+                if(canAjax)
+                {
+                    _k.publish('statechange::before');
 
                     var jqxhr = $.ajax({
                         url: url,
@@ -484,29 +493,7 @@
                         return false;
                     });
 
-                    // $.ajax(
-                    // {
-                    //     url:      url, //+'?ajax',
-                    //     dataType: 'html',
-                    //     success: function (_json, textStatus, jqXHR)
-                    //     {
-                    //         // AFTER
-                    //         _k.publish('statechange::after', _json);
-
-
-                    //         // Inform Google Analytics of the change
-                    //         if ( typeof window._gaq !== 'undefined' )
-                    //         {
-                    //             window._gaq.push(['_trackPageview']);
-                    //         }
-
-                    //     },
-                    //     error: function (jqXHR, textStatus, errorThrown)
-                    //     {
-                    //         document.location.href = url;
-                    //         return false;
-                    //     }
-                    // }); // end ajax
+                }
 
             }); // end onStateChange
 
@@ -541,4 +528,3 @@ if(typeof(console) === 'undefined')
     var console = {}
     console.log = console.error = console.info = console.debug = console.warn = console.trace = console.dir = console.dirxml = console.group = console.groupEnd = console.time = console.timeEnd = console.assert = console.profile = function () {};
 }
-
