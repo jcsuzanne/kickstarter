@@ -27,6 +27,7 @@
         document    = window.document,
         $           = window.jQuery,
 
+
         // Default object properties
         // will be merge && extends
         // with project needs
@@ -84,6 +85,7 @@
                 move  : this.hasTouch ? 'touchmove'  : 'mousemove',
                 end   : this.hasTouch ? 'touchend'   : 'mouseup'
             };
+
         }
 
       // mediator
@@ -433,8 +435,6 @@
 
                     if(canAjax) History.pushState(null, ns.ajax.loading, this.href);
 
-
-
                     return false;
                 });
 
@@ -443,6 +443,8 @@
             };
 
             $body.ajaxify();
+
+
 
             // Hook into State Changes
             $(window).bind('statechange', function ()
@@ -471,13 +473,9 @@
                 {
                     _k.publish('statechange::before');
 
-                    var jqxhr = $.ajax({
-                        url: url,
-                        dataType: "html",
-                    });
-                    jqxhr.done(function(_json) {
-                        // AFTER
-                        _k.publish('statechange::after', _json);
+                    if(typeof heavenHistory[url] != "undefined")
+                    {
+                        _k.publish('statechange::after', heavenHistory[url]);
                         // Inform Google Analytics of the change
                         if ( typeof window._gaq !== 'undefined' )
                         {
@@ -487,12 +485,32 @@
                         {
                             ga('send', 'pageview', {'page': url});
                         }
-                    });
-                    jqxhr.fail(function(jqXHR, textStatus, errorThrown) {
-                        document.location.href = url;
-                        return false;
-                    });
-
+                    }
+                    else
+                    {
+                        var jqxhr = $.ajax({
+                            url: url,
+                            dataType: "html",
+                        });
+                        jqxhr.done(function(_json) {
+                            // AFTER
+                            _k.publish('statechange::after', _json);
+                            heavenHistory[url] = _json
+                            // Inform Google Analytics of the change
+                            if ( typeof window._gaq !== 'undefined' )
+                            {
+                                window._gaq.push(['_trackPageview']);
+                            }
+                            if (typeof window.ga !== 'undefined')
+                            {
+                                ga('send', 'pageview', {'page': url});
+                            }
+                        });
+                        jqxhr.fail(function(jqXHR, textStatus, errorThrown) {
+                            document.location.href = url;
+                            return false;
+                        });
+                    }
                 }
 
             }); // end onStateChange
